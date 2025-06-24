@@ -1,5 +1,3 @@
-// app/routes/dashboard.orders.tsx
-
 import {
   json,
   redirect,
@@ -93,19 +91,22 @@ export default function OrdersDashboard() {
             </tr>
           ) : (
             orders.map((order: any) => (
-              <tr key={order.id} className="hover:bg-gray-50 text-black-900">
-                <td className="p-3 border-b font-mono text-sm">{order.id}</td>
-                <td className="p-3 border-b">{order.customer_name}</td>
-                <td className="p-3 border-b">{order.email}</td>
-                <td className="p-3 border-b">{order.phone}</td>
-                <td className="p-3 border-b">
+              <tr
+                key={order.id}
+                className="transition-colors duration-200 hover:bg-gray-50"
+              >
+                <td className="p-3 border-b font-mono text-sm hover:text-black">{order.id}</td>
+                <td className="p-3 border-b hover:text-black">{order.customer_name}</td>
+                <td className="p-3 border-b hover:text-black">{order.email}</td>
+                <td className="p-3 border-b hover:text-black">{order.phone}</td>
+                <td className="p-3 border-b hover:text-black">
                   {order.total_price} {order.currency}
                 </td>
-                <td className="p-3 border-b">
+                <td className="p-3 border-b hover:text-black">
                   {new Date(order.created_at).toLocaleString()}
                 </td>
-                <td className="p-3 border-b">{order.order_status || 'Pending'}</td>
-                <td className="p-3 border-b">
+                <td className="p-3 border-b hover:text-black">{order.order_status || 'Pending'}</td>
+                <td className="p-3 border-b hover:text-black">
                   <Form method="post" className="flex gap-2 items-center">
                     <input type="hidden" name="orderId" value={order.id} />
                     <select
