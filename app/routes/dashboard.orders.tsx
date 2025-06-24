@@ -189,7 +189,7 @@ export default function OrdersDashboard() {
                       rows={2}
                     />
                     <button type="submit" name="saveNote" value="true" className="note-save-button">
-                      💾 Save Note
+                      Save Note
                     </button>
 
                     {/* Delete button */}
