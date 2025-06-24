@@ -8,7 +8,7 @@ import {
 } from '@remix-run/node';
 import { useLoaderData, Form, useSearchParams } from '@remix-run/react';
 import { db } from '~/utils/db.server';
-import '../styles/orders.css'
+import '../styles/orders.css';
 
 // Loader: fetch orders from the last 30 days
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -54,9 +54,25 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   return redirect(request.url);
 };
 
+function statusClass(status: string | null) {
+  switch ((status || 'Pending').toLowerCase()) {
+    case 'pending':
+      return 'status-pending';
+    case 'processing':
+      return 'status-processing';
+    case 'shipped':
+      return 'status-shipped';
+    case 'delivered':
+      return 'status-delivered';
+    case 'cancelled':
+      return 'status-cancelled';
+    default:
+      return 'status-default';
+  }
+}
+
 export default function OrdersDashboard() {
   const { orders, q } = useLoaderData<typeof loader>();
-  const [searchParams] = useSearchParams();
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -95,24 +111,27 @@ export default function OrdersDashboard() {
           ) : (
             orders.map((order: any) => (
               <tr key={order.id} className="order-row">
-                <td className="p-3 border-b font-mono text-sm group-hover:text-black">{order.id}</td>
-                <td className="p-3 border-b group-hover:text-black">{order.customer_name}</td>
-                <td className="p-3 border-b group-hover:text-black">{order.email}</td>
-                <td className="p-3 border-b group-hover:text-black">{order.phone}</td>
-                <td className="p-3 border-b group-hover:text-black">
+                <td className="p-3 border-b font-mono text-sm">{order.id}</td>
+                <td className="p-3 border-b">{order.customer_name}</td>
+                <td className="p-3 border-b">{order.email}</td>
+                <td className="p-3 border-b">{order.phone}</td>
+                <td className="p-3 border-b">
                   {order.total_price} {order.currency}
                 </td>
-                <td className="p-3 border-b group-hover:text-black">
+                <td className="p-3 border-b">
                   {new Date(order.created_at).toLocaleString()}
                 </td>
-                <td className="p-3 border-b group-hover:text-black">{order.order_status || 'Pending'}</td>
-                <td className="p-3 border-b group-hover:text-black">
-                  <Form method="post" className="flex gap-2 items-center">
+                <td className={`p-3 border-b ${statusClass(order.order_status)}`}>
+                  {order.order_status || 'Pending'}
+                </td>
+                <td className="p-3 border-b">
+                  <Form method="post" reloadDocument>
                     <input type="hidden" name="orderId" value={order.id} />
                     <select
                       name="orderStatus"
                       defaultValue={order.order_status || 'Pending'}
-                      className="border rounded px-2 py-1 text-sm"
+                      onChange={e => e.currentTarget.form?.requestSubmit()}
+                      className="status-select"
                     >
                       <option value="Pending">Pending</option>
                       <option value="Processing">Processing</option>
@@ -120,15 +139,9 @@ export default function OrdersDashboard() {
                       <option value="Delivered">Delivered</option>
                       <option value="Cancelled">Cancelled</option>
                     </select>
-                    <button
-                      type="submit"
-                      className="bg-blue-600 text-white text-sm px-2 py-1 rounded"
-                    >
-                      Save
-                    </button>
                   </Form>
                 </td>
-              </tr>            
+              </tr>
             ))
           )}
         </tbody>
