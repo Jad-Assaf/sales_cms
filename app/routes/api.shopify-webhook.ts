@@ -37,7 +37,24 @@ export const action: ActionFunction = async ({ request }) => {
     });
 
     // Destructure
-    const { id, created_at, customer, email, phone, total_price, currency } = body;
+    const {
+      id,
+      created_at,
+      customer,
+      email,
+      phone: directPhone,
+      total_price,
+      currency,
+      shipping_address,
+      billing_address,
+    } = body;
+    
+    const phone =
+      directPhone ||
+      shipping_address?.phone ||
+      billing_address?.phone ||
+      null;
+    
     console.log('🔎 Fields to insert:', { id, created_at, email, phone, total_price, currency });
 
     const orderId = String(id);
