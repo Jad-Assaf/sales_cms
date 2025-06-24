@@ -13,14 +13,14 @@ export const db = new Pool({
 });
 
 // Optional: verify immediately on startup
-(async () => {
-  try {
-    const client = await db.connect();
-    await client.query('SELECT 1');
-    console.log('✅ Successfully connected to Aiven Postgres');
-    client.release();
-  } catch (e) {
-    console.error('❌ Failed to connect to Aiven Postgres:', e);
-    process.exit(1);
-  }
-})();
+// (async () => {
+//   try {
+//     const client = await db.connect();
+//     await client.query('SELECT 1');
+//     console.log('✅ Successfully connected to Aiven Postgres');
+//     client.release();
+//   } catch (e) {
+//     console.error('❌ Failed to connect to Aiven Postgres:', e);
+//     process.exit(1);
+//   }
+// })();
