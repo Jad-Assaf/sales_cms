@@ -46,7 +46,7 @@ export const action: ActionFunction = async ({ request }) => {
 
     return json({ success: true });
   } catch (err) {
-    console.error('Shopify webhook error:', err);
+    console.error('Shopify webhook error:', err instanceof Error ? err.stack : err);
     return json({ error: 'Server error' }, { status: 500 });
-  }
+  }  
 };
