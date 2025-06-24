@@ -56,6 +56,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return json({ error: 'Invalid order status' }, { status: 400 });
   }
 
+  const note = formData.get('note');
+  if (typeof note === 'string') {
+    await db.query(
+      `UPDATE orders SET note = $1 WHERE id = $2`,
+      [note, orderId]
+    );
+  }
+
   // Update order status
   await db.query(
     `UPDATE orders SET order_status = $1 WHERE id = $2`,
@@ -86,7 +94,7 @@ export default function OrdersDashboard() {
   const { orders, q } = useLoaderData<typeof loader>();
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <div className="p-6 mx-auto">
       <h1 className="text-2xl font-bold mb-4">🛒 Orders (Last 30 Days)</h1>
 
       <Form method="get" className="mb-6">
@@ -122,10 +130,32 @@ export default function OrdersDashboard() {
           ) : (
             orders.map((order: any) => (
               <tr key={order.id} className="order-row">
-                <td className="p-3 border-b font-mono text-sm">{order.id}</td>
+                <td className="p-3 border-b font-mono text-sm">
+                  <a
+                    href={`https://admin.shopify.com/store/961souqs/orders/${order.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="order-id-link"
+                  >
+                    {order.id}
+                  </a>
+                </td>
                 <td className="p-3 border-b">{order.customer_name}</td>
                 <td className="p-3 border-b">{order.email}</td>
-                <td className="p-3 border-b">{order.phone}</td>
+                <td className="p-3 border-b">
+                  {order.phone ? (
+                    <a
+                      href={`https://wa.me/${order.phone.replace(/\D/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="whatsapp-link"
+                    >
+                      {order.phone}
+                    </a>
+                  ) : (
+                    'N/A'
+                  )}
+                </td>
                 <td className="p-3 border-b">
                   {order.total_price} {order.currency}
                 </td>
@@ -150,6 +180,18 @@ export default function OrdersDashboard() {
                       <option value="Delivered">Delivered</option>
                       <option value="Cancelled">Cancelled</option>
                     </select>
+
+                    <textarea
+                      name="note"
+                      defaultValue={order.note || ''}
+                      placeholder="Add note..."
+                      className="note-textarea"
+                      rows={2}
+                    />
+                    <button type="submit" name="saveNote" value="true" className="note-save-button">
+                      💾 Save Note
+                    </button>
+
                     {/* Delete button */}
                     <button
                       type="submit"
