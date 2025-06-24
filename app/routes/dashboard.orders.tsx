@@ -93,7 +93,7 @@ export default function OrdersDashboard() {
             </tr>
           ) : (
             orders.map((order: any) => (
-              <tr key={order.id} className="hover:bg-gray-50">
+              <tr key={order.id} className="hover:bg-gray-50 text-black-900">
                 <td className="p-3 border-b font-mono text-sm">{order.id}</td>
                 <td className="p-3 border-b">{order.customer_name}</td>
                 <td className="p-3 border-b">{order.email}</td>
