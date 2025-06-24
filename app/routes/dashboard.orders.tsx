@@ -1,8 +1,15 @@
 // app/routes/dashboard.orders.tsx
-import { json, LoaderFunctionArgs } from '@remix-run/node';
+
+import {
+  json,
+  redirect,
+  LoaderFunctionArgs,
+  ActionFunctionArgs,
+} from '@remix-run/node';
 import { useLoaderData, Form, useSearchParams } from '@remix-run/react';
 import { db } from '~/utils/db.server';
 
+// Loader: fetch orders from the last 30 days
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const q = url.searchParams.get('q')?.trim() || '';
@@ -26,6 +33,24 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   `);
 
   return json({ orders: result.rows, q });
+};
+
+// Action: update order status
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const formData = await request.formData();
+  const orderId = formData.get('orderId');
+  const newStatus = formData.get('orderStatus');
+
+  if (!orderId || typeof orderId !== 'string' || typeof newStatus !== 'string') {
+    return json({ error: 'Invalid form data' }, { status: 400 });
+  }
+
+  await db.query(
+    `UPDATE orders SET order_status = $1 WHERE id = $2`,
+    [newStatus, orderId]
+  );
+
+  return redirect(request.url);
 };
 
 export default function OrdersDashboard() {
@@ -55,12 +80,14 @@ export default function OrdersDashboard() {
             <th className="p-3 border-b">Phone</th>
             <th className="p-3 border-b">Total</th>
             <th className="p-3 border-b">Date</th>
+            <th className="p-3 border-b">Status</th>
+            <th className="p-3 border-b">Update</th>
           </tr>
         </thead>
         <tbody>
           {orders.length === 0 ? (
             <tr>
-              <td colSpan={6} className="p-4 text-center text-gray-500">
+              <td colSpan={8} className="p-4 text-center text-gray-500">
                 No orders found.
               </td>
             </tr>
@@ -76,6 +103,29 @@ export default function OrdersDashboard() {
                 </td>
                 <td className="p-3 border-b">
                   {new Date(order.created_at).toLocaleString()}
+                </td>
+                <td className="p-3 border-b">{order.order_status || 'Pending'}</td>
+                <td className="p-3 border-b">
+                  <Form method="post" className="flex gap-2 items-center">
+                    <input type="hidden" name="orderId" value={order.id} />
+                    <select
+                      name="orderStatus"
+                      defaultValue={order.order_status || 'Pending'}
+                      className="border rounded px-2 py-1 text-sm"
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="Processing">Processing</option>
+                      <option value="Shipped">Shipped</option>
+                      <option value="Delivered">Delivered</option>
+                      <option value="Cancelled">Cancelled</option>
+                    </select>
+                    <button
+                      type="submit"
+                      className="bg-blue-600 text-white text-sm px-2 py-1 rounded"
+                    >
+                      Save
+                    </button>
+                  </Form>
                 </td>
               </tr>
             ))
