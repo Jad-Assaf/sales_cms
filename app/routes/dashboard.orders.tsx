@@ -8,7 +8,7 @@ import {
 } from '@remix-run/node';
 import { useLoaderData, Form, useSearchParams } from '@remix-run/react';
 import { db } from '~/utils/db.server';
-import ordersStyles from '~/styles/orders.css';
+import ordersStyles from '../styles/orders.css'
 
 export const links = () => [{ rel: 'stylesheet', href: ordersStyles }];
 
