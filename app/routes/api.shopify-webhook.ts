@@ -6,12 +6,9 @@ export const loader: LoaderFunction = async () => {
 };
 
 export const action: ActionFunction = async ({ request }) => {
-  if (request.method !== 'POST') {
-    return json({ error: 'Method not allowed' }, { status: 405 });
-  }
-
   try {
     const body = await request.json();
+    console.log('Received order:', body);
 
     const {
       id,
@@ -27,6 +24,8 @@ export const action: ActionFunction = async ({ request }) => {
     const customerName = customer
       ? `${customer.first_name || ''} ${customer.last_name || ''}`.trim()
       : 'Unknown';
+
+    console.log('Saving to DB:', orderId, customerName);
 
     await db.query(
       `INSERT INTO orders (
@@ -44,9 +43,10 @@ export const action: ActionFunction = async ({ request }) => {
       ]
     );
 
+    console.log('DB insert successful');
     return json({ success: true });
   } catch (err) {
     console.error('Shopify webhook error:', err instanceof Error ? err.stack : err);
     return json({ error: 'Server error' }, { status: 500 });
-  }  
+  }
 };
