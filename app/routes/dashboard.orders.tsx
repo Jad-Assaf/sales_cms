@@ -1,3 +1,5 @@
+// app/routes/dashboard.orders.tsx
+
 import {
   json,
   redirect,
@@ -92,21 +94,21 @@ export default function OrdersDashboard() {
           ) : (
             orders.map((order: any) => (
               <tr
-                key={order.id}
-                className="transition-colors duration-200 hover:bg-gray-50"
+              key={order.id}
+              className="group transition-colors duration-200 hover:bg-gray-50"
               >
-                <td className="p-3 border-b font-mono text-sm hover:text-black">{order.id}</td>
-                <td className="p-3 border-b hover:text-black">{order.customer_name}</td>
-                <td className="p-3 border-b hover:text-black">{order.email}</td>
-                <td className="p-3 border-b hover:text-black">{order.phone}</td>
-                <td className="p-3 border-b hover:text-black">
+                <td className="p-3 border-b font-mono text-sm group-hover:text-black">{order.id}</td>
+                <td className="p-3 border-b group-hover:text-black">{order.customer_name}</td>
+                <td className="p-3 border-b group-hover:text-black">{order.email}</td>
+                <td className="p-3 border-b group-hover:text-black">{order.phone}</td>
+                <td className="p-3 border-b group-hover:text-black">
                   {order.total_price} {order.currency}
                 </td>
-                <td className="p-3 border-b hover:text-black">
+                <td className="p-3 border-b group-hover:text-black">
                   {new Date(order.created_at).toLocaleString()}
                 </td>
-                <td className="p-3 border-b hover:text-black">{order.order_status || 'Pending'}</td>
-                <td className="p-3 border-b hover:text-black">
+                <td className="p-3 border-b group-hover:text-black">{order.order_status || 'Pending'}</td>
+                <td className="p-3 border-b group-hover:text-black">
                   <Form method="post" className="flex gap-2 items-center">
                     <input type="hidden" name="orderId" value={order.id} />
                     <select
@@ -128,7 +130,7 @@ export default function OrdersDashboard() {
                     </button>
                   </Form>
                 </td>
-              </tr>
+              </tr>            
             ))
           )}
         </tbody>
