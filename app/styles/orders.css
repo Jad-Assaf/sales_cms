@@ -1,0 +1,14 @@
+.order-row {
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.order-row:hover {
+    background-color: #f9fafb;
+    /* Tailwind's gray-50 */
+    color: #000;
+    /* Force black text */
+}
+
+.order-row:hover td {
+    color: #000 !important;
+}

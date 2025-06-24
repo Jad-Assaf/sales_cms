@@ -8,6 +8,9 @@ import {
 } from '@remix-run/node';
 import { useLoaderData, Form, useSearchParams } from '@remix-run/react';
 import { db } from '~/utils/db.server';
+import ordersStyles from '~/styles/orders.css';
+
+export const links = () => [{ rel: 'stylesheet', href: ordersStyles }];
 
 // Loader: fetch orders from the last 30 days
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -73,7 +76,7 @@ export default function OrdersDashboard() {
 
       <table className="w-full border-collapse">
         <thead>
-          <tr className="text-left bg-gray-100">
+          <tr className="text-left bg-gray-900">
             <th className="p-3 border-b">Order ID</th>
             <th className="p-3 border-b">Customer</th>
             <th className="p-3 border-b">Email</th>
@@ -93,10 +96,7 @@ export default function OrdersDashboard() {
             </tr>
           ) : (
             orders.map((order: any) => (
-              <tr
-              key={order.id}
-              className="group transition-colors duration-200 hover:bg-gray-50"
-              >
+              <tr key={order.id} className="order-row">
                 <td className="p-3 border-b font-mono text-sm group-hover:text-black">{order.id}</td>
                 <td className="p-3 border-b group-hover:text-black">{order.customer_name}</td>
                 <td className="p-3 border-b group-hover:text-black">{order.email}</td>
