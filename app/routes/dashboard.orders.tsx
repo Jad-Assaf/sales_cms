@@ -8,10 +8,7 @@ import {
 } from '@remix-run/node';
 import { useLoaderData, Form, useSearchParams } from '@remix-run/react';
 import { db } from '~/utils/db.server';
-import ordersStyles from '../styles/orders.css'
-import type { LinksFunction } from '@remix-run/node';
-
-export const links: LinksFunction = () => [{ rel: 'stylesheet', href: ordersStyles }];
+import '../styles/orders.css'
 
 // Loader: fetch orders from the last 30 days
 export const loader = async ({ request }: LoaderFunctionArgs) => {
