@@ -40,12 +40,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const orderId = formData.get('orderId');
-  const newStatus = formData.get('orderStatus');
 
-  if (!orderId || typeof orderId !== 'string' || typeof newStatus !== 'string') {
-    return json({ error: 'Invalid form data' }, { status: 400 });
+  if (!orderId || typeof orderId !== 'string') {
+    return json({ error: 'Invalid order ID' }, { status: 400 });
   }
 
+  if (formData.has('delete')) {
+    // Delete order
+    await db.query(`DELETE FROM orders WHERE id = $1`, [orderId]);
+    return redirect(request.url);
+  }
+
+  const newStatus = formData.get('orderStatus');
+  if (typeof newStatus !== 'string') {
+    return json({ error: 'Invalid order status' }, { status: 400 });
+  }
+
+  // Update order status
   await db.query(
     `UPDATE orders SET order_status = $1 WHERE id = $2`,
     [newStatus, orderId]
@@ -139,6 +150,21 @@ export default function OrdersDashboard() {
                       <option value="Delivered">Delivered</option>
                       <option value="Cancelled">Cancelled</option>
                     </select>
+                    {/* Delete button */}
+                    <button
+                      type="submit"
+                      name="delete"
+                      value="true"
+                      className="delete-button"
+                      onClick={(e) => {
+                        if (!confirm('Are you sure you want to delete this order?')) {
+                          e.preventDefault();
+                        }
+                      }}
+                      style={{ marginLeft: '10px' }}
+                    >
+                      Delete
+                    </button>
                   </Form>
                 </td>
               </tr>
