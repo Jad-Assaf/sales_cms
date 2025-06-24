@@ -1,5 +1,9 @@
-import { json, type ActionFunction } from '@remix-run/node';
+import { json, type LoaderFunction, type ActionFunction } from '@remix-run/node';
 import { db } from '~/utils/db.server';
+
+export const loader: LoaderFunction = async () => {
+  return json({ message: 'This route is for Shopify webhooks (POST only)' });
+};
 
 export const action: ActionFunction = async ({ request }) => {
   if (request.method !== 'POST') {
