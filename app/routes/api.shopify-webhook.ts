@@ -1,4 +1,3 @@
-// app/routes/api.shopify-webhook.ts
 import { json, type LoaderFunction, type ActionFunction } from '@remix-run/node';
 import { db } from '~/utils/db.server';
 
@@ -10,14 +9,13 @@ export const loader: LoaderFunction = async () => {
 export const action: ActionFunction = async ({ request }) => {
   console.log('🔔 [action] POST /api/shopify-webhook start');
   try {
-    // Log entire request headers
-    console.log('📋 Request headers:', JSON.stringify(Object.fromEntries(request.headers)));
+    const headers = Object.fromEntries(request.headers);
+    const topic = headers['x-shopify-topic'];
+    console.log('📦 Shopify Topic:', topic);
 
-    // Read and log raw body
     const raw = await request.text();
     console.log('📥 Raw body:', raw);
 
-    // Parse JSON
     let body: any;
     try {
       body = JSON.parse(raw);
@@ -27,18 +25,22 @@ export const action: ActionFunction = async ({ request }) => {
       return json({ error: 'Invalid JSON' }, { status: 400 });
     }
 
-    // Log environment vars and DB config
-    console.log('🔧 Environment:', {
-      DATABASE_URL: process.env.DATABASE_URL?.slice(0, 50) + '…',
-    });
+    const orderId = String(body.id);
+    console.log('🆔 Order ID:', orderId);
 
-    console.log('🔧 DB pool options:', {
-      ssl: Boolean((db as any).options?.ssl),
-    });
+    // 🗑️ Handle deletion-related webhooks
+    if (
+      topic === 'orders/delete' ||
+      topic === 'orders/cancelled' ||
+      topic === 'orders/fulfilled'
+    ) {
+      const result = await db.query(`DELETE FROM orders WHERE id = $1`, [orderId]);
+      console.log(`🗑️ Deleted order ${orderId}:`, result.rowCount);
+      return json({ deleted: result.rowCount });
+    }
 
-    // Destructure
+    // 🧾 Handle order creation
     const {
-      id,
       created_at,
       customer,
       email,
@@ -48,22 +50,18 @@ export const action: ActionFunction = async ({ request }) => {
       shipping_address,
       billing_address,
     } = body;
-    
+
     const phone =
       directPhone ||
       shipping_address?.phone ||
       billing_address?.phone ||
       null;
-    
-    console.log('🔎 Fields to insert:', { id, created_at, email, phone, total_price, currency });
 
-    const orderId = String(id);
     const customerName = customer
       ? `${customer.first_name || ''} ${customer.last_name || ''}`.trim()
       : 'Unknown';
 
-    // Build and log query
-    const text = `
+    const insertQuery = `
       INSERT INTO orders
         (id, created_at, customer_name, email, phone, total_price, currency)
       VALUES ($1,$2,$3,$4,$5,$6,$7)
@@ -78,15 +76,12 @@ export const action: ActionFunction = async ({ request }) => {
       total_price,
       currency,
     ];
-    console.log('📨 Executing query:', text.trim(), 'with', values);
 
-    // Execute
-    const result = await db.query(text, values);
-    console.log('✅ Query result:', { command: result.command, rowCount: result.rowCount });
+    const insertResult = await db.query(insertQuery, values);
+    console.log('✅ Inserted:', insertResult.rowCount);
 
-    return json({ success: true });
+    return json({ inserted: insertResult.rowCount });
   } catch (err: any) {
-    // Log full error
     console.error('❌ [action] Unhandled error:', err.stack || err);
     return json({ error: 'Server error' }, { status: 500 });
   }
