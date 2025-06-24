@@ -1,0 +1,87 @@
+// app/routes/dashboard.orders.tsx
+import { json, LoaderFunctionArgs } from '@remix-run/node';
+import { useLoaderData, Form, useSearchParams } from '@remix-run/react';
+import { db } from '~/utils/db.server';
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+  const q = url.searchParams.get('q')?.trim() || '';
+
+  const searchFilter = q
+    ? `
+      AND (
+        LOWER(id) LIKE LOWER('%${q}%') OR
+        LOWER(email) LIKE LOWER('%${q}%') OR
+        LOWER(phone) LIKE LOWER('%${q}%') OR
+        LOWER(customer_name) LIKE LOWER('%${q}%')
+      )
+    `
+    : '';
+
+  const result = await db.query(`
+    SELECT * FROM orders
+    WHERE created_at >= NOW() - INTERVAL '30 days'
+    ${searchFilter}
+    ORDER BY created_at DESC
+  `);
+
+  return json({ orders: result.rows, q });
+};
+
+export default function OrdersDashboard() {
+  const { orders, q } = useLoaderData<typeof loader>();
+  const [searchParams] = useSearchParams();
+
+  return (
+    <div className="p-6 max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">🛒 Orders (Last 30 Days)</h1>
+
+      <Form method="get" className="mb-6">
+        <input
+          type="text"
+          name="q"
+          defaultValue={q}
+          placeholder="Search by email, phone, name or ID..."
+          className="w-full max-w-md px-4 py-2 border rounded-lg shadow-sm"
+        />
+      </Form>
+
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="text-left bg-gray-100">
+            <th className="p-3 border-b">Order ID</th>
+            <th className="p-3 border-b">Customer</th>
+            <th className="p-3 border-b">Email</th>
+            <th className="p-3 border-b">Phone</th>
+            <th className="p-3 border-b">Total</th>
+            <th className="p-3 border-b">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.length === 0 ? (
+            <tr>
+              <td colSpan={6} className="p-4 text-center text-gray-500">
+                No orders found.
+              </td>
+            </tr>
+          ) : (
+            orders.map((order: any) => (
+              <tr key={order.id} className="hover:bg-gray-50">
+                <td className="p-3 border-b font-mono text-sm">{order.id}</td>
+                <td className="p-3 border-b">{order.customer_name}</td>
+                <td className="p-3 border-b">{order.email}</td>
+                <td className="p-3 border-b">{order.phone}</td>
+                <td className="p-3 border-b">
+                  {order.total_price} {order.currency}
+                </td>
+                <td className="p-3 border-b">
+                  {new Date(order.created_at).toLocaleString()}
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
